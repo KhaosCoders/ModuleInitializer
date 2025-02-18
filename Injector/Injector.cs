@@ -165,6 +165,10 @@ internal class Injector
             readParams.SymbolReaderProvider = new PdbReaderProvider();
         }
 
+        DefaultAssemblyResolver assemblyResolver = new();
+        assemblyResolver.AddSearchDirectory(Path.GetDirectoryName(assemblyFile));
+        readParams.AssemblyResolver = assemblyResolver;
+
         InjectionTargetAssembly = AssemblyDefinition.ReadAssembly(assemblyFile, readParams);
     }
 
