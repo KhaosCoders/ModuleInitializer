@@ -119,7 +119,31 @@ internal class Injector
             writeParams.StrongNameKeyPair = new StrongNameKeyPair(File.ReadAllBytes(keyfile));
         }
 
-        InjectionTargetAssembly.Write(assemblyFile, writeParams);
+        string tempDir = string.Empty;
+        while (string.IsNullOrWhiteSpace(tempDir) || Directory.Exists(tempDir))
+        {
+            tempDir = Path.Combine(Path.GetTempPath(), $"Injector-{DateTimeOffset.Now.Ticks}");
+        }
+
+        Directory.CreateDirectory(tempDir);
+
+        string outFile = Path.Combine(tempDir, Path.GetFileName(assemblyFile));
+        InjectionTargetAssembly.Write(outFile, writeParams);
+
+        InjectionTargetAssembly.Dispose();
+
+        foreach (var file in Directory.GetFiles(tempDir))
+        {
+            string targetFile = Path.Combine(Path.GetDirectoryName(assemblyFile), Path.GetFileName(file));
+            if (File.Exists(targetFile))
+            {
+                File.Delete(targetFile);
+            }
+
+            File.Move(file, targetFile);
+        }
+
+        Directory.Delete(tempDir);
     }
 
     /// <summary>
